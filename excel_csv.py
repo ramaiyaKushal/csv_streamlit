@@ -12,7 +12,7 @@ uploaded_file = st.file_uploader("Choose a file", type=["xls", "xlsx"])
 if uploaded_file is not None:
     option = st.selectbox(
     "Which Bank is it?",
-    ("ICICI Bank", "SBI Bank", "Axis Bank"),
+    ("ICICI Bank", "SBI Bank", "Axis Bank","Kotak Bank","Fincare Bank"),
     index=None,
     placeholder="Select a bank",
     )
@@ -55,9 +55,18 @@ if uploaded_file is not None:
             df['Debit'] = df['Debit'].replace(' ',None)
             df['Credit'] = df['Credit'].replace(' ',None)
             df['DR|CR'] = df['Credit'].fillna(-1*df['Debit'].astype('float')).astype('float')
-            
+        elif option == "Kotak Bank":
+            cols = range(6)
+            df = pd.read_excel(uploaded_file, skiprows=9,usecols=cols)
+            st.write(df)
+            df['Amount'] = df.apply(lambda row: -1 * float(row['Amount']) if row['Dr / Cr'] == 'DR' else row['Amount'], axis=1)
+        elif option == "Fincare Bank":
+            df = pd.read_excel(uploaded_file, skiprows=5)
+            st.write(df)
+            df['Withdrawal (Dr.)'] = df['Withdrawal (Dr.)'].replace('-',None)
+            df['Deposit (Cr.)'] = df['Deposit (Cr.)'].replace('-',None)
+            df['DR|CR'] = df['Deposit (Cr.)'].fillna(-1*df['Withdrawal (Dr.)'].astype('float')).astype('float')
 
-        
         # Write to CSV
         csv = df.to_csv(index=False)
         st.write("Modified CSV")
