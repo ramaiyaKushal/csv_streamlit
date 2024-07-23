@@ -23,7 +23,7 @@ if uploaded_file is not None:
             if 'Unnamed: 0' in df.columns:
                 df = df.drop(columns=['Unnamed: 0'])
             df.columns = [col.strip() for col in df.columns]  # remove any leading/trailing whitespaces in column names
-            df = df.rename(columns={'DR|CR': 'Cr/Dr'})
+            df = df.rename(columns={'DR|CR': 'Cr/Dr','Amount(INR)':'Transaction Amount(INR)'})
         elif option == "SBI Bank":
             df = None
 
