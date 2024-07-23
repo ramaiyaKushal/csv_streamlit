@@ -5,7 +5,7 @@ import pandas as pd
 st.title('Excel to CSV Converter')
 
 # Upload Excel file
-uploaded_file = st.file_uploader("Choose an Excel file", type="xls")
+uploaded_file = st.file_uploader("Choose a file", type=["xls", "xlsx"])
 
 if uploaded_file is not None:
     # Read Excel file
