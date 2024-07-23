@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+from io import StringIO
+import tempfile
 
 # Title of the app
 st.title('Excel to CSV Converter')
@@ -18,6 +20,7 @@ if uploaded_file is not None:
         st.write("You selected:", option)
         if option == "ICICI Bank":
             df = pd.read_excel(uploaded_file,skiprows=6)
+            st.write(df)
             df['Transaction Amount(INR)'] = df.apply(lambda row: -1 * row['Transaction Amount(INR)'] if row['Cr/Dr'] == 'DR' else row['Transaction Amount(INR)'], axis=1)
         
         elif option == "Axis Bank":
@@ -27,12 +30,33 @@ if uploaded_file is not None:
             df.columns = [col.strip() for col in df.columns]  # remove any leading/trailing whitespaces in column names
             # df = df.rename(columns={'DR|CR': 'Cr/Dr','Amount(INR)':'Transaction Amount(INR)'})
             df = df.dropna()
+            st.write(df)
             df["Amount(INR)"] = df["Amount(INR)"].astype("float")
             df['Amount(INR)'] = df.apply(lambda row: -1 * float(row['Amount(INR)']) if row['DR|CR'] == 'DR' else row['Amount(INR)'], axis=1)
 
         elif option == "SBI Bank":
-            st.write("Work in progress")
-            df = None
+            stringio = StringIO(uploaded_file.getvalue().decode('utf-8'))
+            lines = stringio.readlines()
+
+            # Remove the specified number of lines
+            lines = lines[19:len(lines)-1]
+
+            # Write the remaining lines back to the file
+            temp = tempfile.NamedTemporaryFile()
+            # Open the file for writing.
+            with open(temp.name, 'w') as f:
+                f.writelines(lines)
+
+            df = pd.read_csv(temp.name,delimiter='\t')
+            df.columns = [col.strip() for col in df.columns]
+            if 'Unnamed: 8' in df.columns:
+                df = df.drop(columns=['Unnamed: 8'])
+            st.write(df)
+            df['Debit'] = df['Debit'].replace(' ',None)
+            df['Credit'] = df['Credit'].replace(' ',None)
+            df['DR|CR'] = df['Credit'].fillna(-1*df['Debit'].astype('float')).astype('float')
+            
+
         
         # Write to CSV
         csv = df.to_csv(index=False)
