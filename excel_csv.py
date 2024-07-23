@@ -18,21 +18,21 @@ if uploaded_file is not None:
         st.write("You selected:", option)
         if option == "ICICI Bank":
             df = pd.read_excel(uploaded_file,skiprows=6)
+            df['Transaction Amount(INR)'] = df.apply(lambda row: -1 * row['Transaction Amount(INR)'] if row['Cr/Dr'] == 'DR' else row['Transaction Amount(INR)'], axis=1)
+        
         elif option == "Axis Bank":
             df = pd.read_excel(uploaded_file, skiprows=13).dropna(how='all', axis=1)
             if 'Unnamed: 0' in df.columns:
                 df = df.drop(columns=['Unnamed: 0'])
             df.columns = [col.strip() for col in df.columns]  # remove any leading/trailing whitespaces in column names
-            df = df.rename(columns={'DR|CR': 'Cr/Dr','Amount(INR)':'Transaction Amount(INR)'})
-        elif option == "SBI Bank":
-            df = None
+            # df = df.rename(columns={'DR|CR': 'Cr/Dr','Amount(INR)':'Transaction Amount(INR)'})
+            df = df.dropna()
+            df["Amount(INR)"] = df["Amount(INR)"].astype("float")
+            df['Amount(INR)'] = df.apply(lambda row: -1 * float(row['Amount(INR)']) if row['DR|CR'] == 'DR' else row['Amount(INR)'], axis=1)
 
-        # Modify the dataframe here as per your requirement
-        # For example, let's assume we're dropping a column named 'Unnamed: 0'
-        if 'Unnamed: 0' in df.columns:
-            df = df.drop(columns=['Unnamed: 0'])
-        
-        df['Transaction Amount(INR)'] = df.apply(lambda row: -1 * row['Transaction Amount(INR)'] if row['Cr/Dr'] == 'DR' else row['Transaction Amount(INR)'], axis=1)
+        elif option == "SBI Bank":
+            st.write("Work in progress")
+            df = None
         
         # Write to CSV
         csv = df.to_csv(index=False)
